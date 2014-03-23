@@ -147,22 +147,28 @@ public class XmlWorker {
 					log.debug("Currently dealing with server: " + svrRt[m]);
 					if (mBeanInfoMap != null) {
 						for (int g = 0; g < mBeanInfoMap.length; g++) {
-							if (mbeanAttrStrs.length > 0) {
-								Element currServer = root.addElement(mbeanName);
+							if (mBeanInfoMap[g] != null
+									&& mbeanAttrStrs.length > 0) {
+								Element currItem = root.addElement(mbeanName);
+								currItem.addAttribute("serverName", svrName);
 								for (int j = 0; j < mbeanAttrStrs.length; j++) {
 									String curAttr = mbeanAttrStrs[j];
-									if (mBeanInfoMap[g] != null) {
-										currServer.addAttribute(curAttr, String
-												.valueOf(mBeanInfoMap[g]
-														.get(curAttr)));
-										log.debug("Attribute: "
-												+ curAttr
-												+ " Value: "
-												+ String.valueOf(mBeanInfoMap[g]
-														.get(curAttr)));
+									Object curAttrVal = mBeanInfoMap[g]
+											.get(curAttr);
+									if (curAttrVal != null) {
+										currItem.addAttribute(curAttr,
+												String.valueOf(curAttrVal));
+									} else {
+										root.remove(currItem);
+										j = mbeanAttrStrs.length;
 									}
+									log.debug("Attribute: "
+											+ curAttr
+											+ " Value: "
+											+ String.valueOf(mBeanInfoMap[g]
+													.get(curAttr)));
 								}
-								currServer.addAttribute("serverName", svrName);
+
 							}
 						}
 					}
@@ -170,7 +176,8 @@ public class XmlWorker {
 
 			}
 		} else {
-			resultDoc = this.genErrXml("Happened to lose connection to WebLogic Admin. maybe shutdown");
+			resultDoc = this
+					.genErrXml("Happened to lose connection to WebLogic Admin. maybe shutdown");
 		}
 
 		return resultDoc;

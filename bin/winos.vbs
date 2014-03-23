@@ -9,7 +9,7 @@ Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
 Set memItems = objWMIService.ExecQuery("Select * from Win32_PerfRawData_PerfOS_Memory",,48)  
 
 For Each objItem in memItems  
-    WScript.Echo(objItem.AvailableMBytes & "M")
+    WScript.Echo(objItem.AvailableMBytes)
 Next  
 
  

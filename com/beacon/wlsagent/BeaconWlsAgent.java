@@ -7,6 +7,7 @@ import java.io.*;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
+import org.dom4j.io.SAXReader;
 
 import com.beacon.util.BeaconUtil;
 import com.beacon.wlsagent.jmxcube.BeaconStateCollector;
@@ -93,8 +94,8 @@ public class BeaconWlsAgent extends ServerSocket {
 	private void handleIncomingSocket(Socket socket) {
 		try {
 			PrintWriter pw = new PrintWriter(socket.getOutputStream());
-			BufferedReader br = new BufferedReader(new InputStreamReader(socket
-					.getInputStream()));
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					socket.getInputStream()));
 
 			char[] pubBuffer = new char[BUFFER_LEN];
 
@@ -103,8 +104,7 @@ public class BeaconWlsAgent extends ServerSocket {
 			int iniRCode;
 
 			if (len <= 0) {
-				log
-						.info("handleIncomingSocket: Cannot read any bytes from InputStream...");
+				log.info("handleIncomingSocket: Cannot read any bytes from InputStream...");
 			} else {
 				iniRCode = (int) pubBuffer[0];
 				if (iniRCode == Integer.valueOf(
@@ -114,23 +114,20 @@ public class BeaconWlsAgent extends ServerSocket {
 							.get("HANDACK")));
 					pw.flush();
 					new WlsAgentThread(socket, br, pw);
-					log
-							.info("handleIncomingSocket: Handshake with client confirmed, forked a new wlsAgentThread for data collection...");
+					log.info("handleIncomingSocket: Handshake with client confirmed, forked a new wlsAgentThread for data collection...");
 				} else if (iniRCode == Integer.valueOf((String) coreMap
 						.get("CLOSESVR"))) {
 					this.isAlive = false;
 					pw.close();
 					br.close();
 					socket.close();
-					log
-							.info("handleIncomingSocket: Close request confirmed, wlsagent process will exit...");
+					log.info("handleIncomingSocket: Close request confirmed, wlsagent process will exit...");
 				}
 			}
 		} catch (IOException ioe) {
-			log
-					.error(
-							"handleIncomingSocket: ServerSocket got errors while dealing with incoming socket...",
-							ioe);
+			log.error(
+					"handleIncomingSocket: ServerSocket got errors while dealing with incoming socket...",
+					ioe);
 		}
 	}
 
@@ -174,7 +171,7 @@ public class BeaconWlsAgent extends ServerSocket {
 				// get incoming xml
 				String lenStr = new String(buffer, 0, len);
 				int inXmlLen = Integer.parseInt(lenStr.trim());
-				log.info("ready to read " + inXmlLen
+				log.debug("ready to read " + inXmlLen
 						+ " bytes to generate incoming-xml:");
 				int readInLen = in.read(buffer, 0, inXmlLen);
 
@@ -190,13 +187,17 @@ public class BeaconWlsAgent extends ServerSocket {
 					sb.append(new String(buffer, 0, dif));
 					readInLen = readInLen + dif;
 				}
-				log.debug("incoming initial xml: "+sb.toString());
+				// String xmlAddress = "D:\\ini.xml";
+				// SAXReader reader = new SAXReader();
+				// File xmlFile = new File(xmlAddress);
+				// Document document = reader.read(xmlFile);
+				// inXml = document.asXML();
+				log.debug("incoming initial xml: " + inXml);
 				return BeaconUtil.string2Document(sb.toString());
-			} catch (IOException ioe) {
-				log
-						.error(
-								"genInputDoc: got IOException while generatinging input document...",
-								ioe);
+			} catch (Exception ioe) {
+				log.error(
+						"genInputDoc: got IOException while generatinging input document...",
+						ioe);
 				this.thrdIsAlive = false;
 				return null;
 			}
@@ -207,7 +208,7 @@ public class BeaconWlsAgent extends ServerSocket {
 				Document inputDoc;
 				if (reason != null) {
 
-					if (reason.equals("GETINITDATA") && fsc == null) {
+					if (reason.equals("GETINITDATA")) {
 						// XML validation at pre-defined schema
 						IniXmlValidator ixv = new IniXmlValidator();
 						inputDoc = genInputDoc();
@@ -220,6 +221,9 @@ public class BeaconWlsAgent extends ServerSocket {
 							}
 						}
 
+						if (fsc == null) {
+							fsc = new BeaconStateCollector(inputDoc);
+						}
 						String iniStr = xw.genFeedData(true, this.fsc).asXML();
 						buffer = BeaconUtil.bytesToChars(iniStr.getBytes());
 						log.debug("Pinned info:  " + iniStr);
@@ -229,8 +233,9 @@ public class BeaconWlsAgent extends ServerSocket {
 						inputDoc = genInputDoc();
 						// TODO Here to add the logic about getting thread dump
 						// info by using JVMRuntimeBean
-						buffer = BeaconUtil.bytesToChars(xw.genErrXml(
-								"Thread Dump: ----- ").asXML().getBytes());
+						buffer = BeaconUtil.bytesToChars(xw
+								.genErrXml("Thread Dump: ----- ").asXML()
+								.getBytes());
 					}
 
 				} else {
@@ -261,15 +266,15 @@ public class BeaconWlsAgent extends ServerSocket {
 				}
 
 				out.flush();
-				log.debug("write feed-data's length into OutputStream...");
+				log.debug("write feed-data's length into OutputStream..."
+						+ String.valueOf(charLen));
 				out.write(buffer);
 				out.flush();
 				log.debug("write feed-data into OutputStream...");
 			} catch (Exception e) {
-				log
-						.error(
-								"feedData: got RuntimeException while feeding data back to client...",
-								e);
+				log.error(
+						"feedData: got RuntimeException while feeding data back to client...",
+						e);
 				this.thrdIsAlive = false;
 			}
 		}
@@ -299,6 +304,8 @@ public class BeaconWlsAgent extends ServerSocket {
 							fsc.refreshSvrList();
 
 						rCode = (int) buffer[0];
+
+						log.debug("HANDSHAKE CODE IS: " + String.valueOf(rCode));
 
 						switch (rCode) {
 
@@ -338,8 +345,7 @@ public class BeaconWlsAgent extends ServerSocket {
 					}
 				}
 				this.fsc.closeCollector();
-				log
-						.info("Collection done , current WlsAgentThread will exit...");
+				log.info("Collection done , current WlsAgentThread will exit...");
 			} catch (IOException ioe) {
 				log.error(
 						"Errors occured during WlsAgentThread run-circle ...",
@@ -356,10 +362,9 @@ public class BeaconWlsAgent extends ServerSocket {
 					clientSkt.close();
 					log.info("Client socket closed...");
 				} catch (IOException ioe) {
-					log
-							.error(
-									"Errors occured when try to close clent socket and its' streams ...",
-									ioe);
+					log.error(
+							"Errors occured when try to close clent socket and its' streams ...",
+							ioe);
 				}
 			}
 		}
@@ -372,8 +377,7 @@ public class BeaconWlsAgent extends ServerSocket {
 
 			boolean isValid = lic.presume();
 			if (args.length < 1) {
-				log
-						.info("usage:  BeaconWlsAgent portNum.\nNow using 8108 as default listen port...");
+				log.info("usage:  BeaconWlsAgent portNum.\nNow using 8108 as default listen port...");
 				new BeaconWlsAgent(8108, isValid);
 			} else {
 				new BeaconWlsAgent(Integer.parseInt(args[0]), isValid);

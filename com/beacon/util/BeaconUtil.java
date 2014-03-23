@@ -153,7 +153,7 @@ public class BeaconUtil {
 					str1 = str1 + str2;
 					str1 = str1 + "\n";
 				}
-				log.info("stdout:\n" + str1);
+				log.info("stdout: " + str1);
 				return str1;
 			} catch (IOException localIOException2) {
 				System.out

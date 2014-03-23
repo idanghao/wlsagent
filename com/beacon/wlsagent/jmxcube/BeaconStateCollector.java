@@ -120,11 +120,11 @@ public class BeaconStateCollector {
 			h.put("jmx.remote.x.request.waiting.timeout", new Long(10000));
 
 			log.info("To connect to:" + serviceURL);
-			
+
 			connector = JMXConnectorFactory.connect(serviceURL, h);
 			connection = connector.getMBeanServerConnection();
 			serverRT = getServerRuntimes();
-			log.debug("Got " + serverRT.length + " wls instances...\n");
+			log.debug("Got " + serverRT.length + " wls instances...");
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -151,12 +151,11 @@ public class BeaconStateCollector {
 	public void refreshSvrList() {
 		try {
 			serverRT = getServerRuntimes();
-			log.debug("Got " + serverRT.length + " wls instances...\n");
+			log.debug("Got " + serverRT.length + " wls instances...");
 		} catch (Exception e) {
-			log
-					.error(
-							"Connection to admin got error, Can not get server information, need to reconnect...",
-							e);
+			log.error(
+					"Connection to admin got error, Can not get server information, need to reconnect...",
+					e);
 			initConnection();
 		}
 		log.info("Server Name list refreshed...");
@@ -257,10 +256,7 @@ public class BeaconStateCollector {
 							}
 
 						} catch (AttributeNotFoundException ane) {
-							log
-									.debug(
-											"cannot get wanted attribute from given mbean",
-											ane);
+							log.debug("cannot get wanted attribute from given mbean");
 							continue;
 						}
 					}
@@ -279,10 +275,9 @@ public class BeaconStateCollector {
 				return null;
 			}
 		} catch (ConnectException ce) {
-			log
-					.error(
-							"Connection to admin got error, Can not get server information, need to reconnect...",
-							ce);
+			log.error(
+					"Connection to admin got error, Can not get server information, need to reconnect...",
+					ce);
 			return null;
 		} catch (Exception e) {
 			log.error("Cannot get RuntimeMBean by " + parentMbeanObj + " and "
@@ -347,10 +342,9 @@ public class BeaconStateCollector {
 				return null;
 			}
 		} catch (Exception e) {
-			log
-					.error(
-							"Cannot get RuntimeMBean by given parentMbeanObj and sonMbeanObj: ",
-							e);
+			log.error(
+					"Cannot get RuntimeMBean by given parentMbeanObj and sonMbeanObj: ",
+					e);
 			return null;
 		}
 	}
@@ -372,10 +366,7 @@ public class BeaconStateCollector {
 							al = connection.getAttributes(currRtmMbea[m],
 									attrStrs);
 						} catch (InstanceNotFoundException ife) {
-							log
-									.debug(
-											"cannot get wanted values from given mbean",
-											ife);
+							log.debug("cannot get wanted values from given mbean");
 							continue;
 						}
 						int attrindex = 0;
@@ -400,10 +391,9 @@ public class BeaconStateCollector {
 				return null;
 			}
 		} catch (Exception e) {
-			log
-					.debug(
-							"Cannot get MBeanInfoMap by given MBean and attributes Strings: ",
-							e);
+			log.debug(
+					"Cannot get MBeanInfoMap by given MBean and attributes Strings: ",
+					e);
 			return null;
 		}
 	}
@@ -420,16 +410,16 @@ public class BeaconStateCollector {
 		try {
 			ObjectName domCfgMbean = this.getDomainConfigurationMbean();
 
-			pinnedInfoMap.put("DomainVersion", connection.getAttribute(
-					domCfgMbean, "DomainVersion"));
-			pinnedInfoMap.put("AdminServerName", connection.getAttribute(
-					domCfgMbean, "AdminServerName"));
-			pinnedInfoMap.put("Name", connection.getAttribute(domCfgMbean,
-					"Name"));
+			pinnedInfoMap.put("DomainVersion",
+					connection.getAttribute(domCfgMbean, "DomainVersion"));
+			pinnedInfoMap.put("AdminServerName",
+					connection.getAttribute(domCfgMbean, "AdminServerName"));
+			pinnedInfoMap.put("Name",
+					connection.getAttribute(domCfgMbean, "Name"));
 			pinnedInfoMap.put("ProductionModeEnabled", connection.getAttribute(
 					domCfgMbean, "ProductionModeEnabled"));
-			pinnedInfoMap.put("RootDirectory", connection.getAttribute(
-					domCfgMbean, "RootDirectory"));
+			pinnedInfoMap.put("RootDirectory",
+					connection.getAttribute(domCfgMbean, "RootDirectory"));
 
 			ObjectName adminSvrRtmObjName = getServerRuntimesBySvrName((String) connection
 					.getAttribute(domCfgMbean, "AdminServerName"));
@@ -437,14 +427,14 @@ public class BeaconStateCollector {
 			ObjectName jvmRtmObjName = (ObjectName) connection.getAttribute(
 					adminSvrRtmObjName, "JVMRuntime");
 
-			pinnedInfoMap.put("OSName", connection.getAttribute(jvmRtmObjName,
-					"OSName"));
-			pinnedInfoMap.put("OSVersion", connection.getAttribute(
-					jvmRtmObjName, "OSVersion"));
-			pinnedInfoMap.put("JavaVendor", connection.getAttribute(
-					jvmRtmObjName, "JavaVendor"));
-			pinnedInfoMap.put("JavaVersion", connection.getAttribute(
-					jvmRtmObjName, "JavaVersion"));
+			pinnedInfoMap.put("OSName",
+					connection.getAttribute(jvmRtmObjName, "OSName"));
+			pinnedInfoMap.put("OSVersion",
+					connection.getAttribute(jvmRtmObjName, "OSVersion"));
+			pinnedInfoMap.put("JavaVendor",
+					connection.getAttribute(jvmRtmObjName, "JavaVendor"));
+			pinnedInfoMap.put("JavaVersion",
+					connection.getAttribute(jvmRtmObjName, "JavaVersion"));
 			pinnedInfoMap.put("ActivationTime", connection.getAttribute(
 					adminSvrRtmObjName, "ActivationTime"));
 
